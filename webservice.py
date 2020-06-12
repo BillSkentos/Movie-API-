@@ -36,7 +36,11 @@ app.config['SECRET_KEY'] = SECRET_KEY
 
 @app.route('/simpleuser')
 def simpleuser():
-    return render_template('simple.html')
+    if 'Email' in session:
+        email = session['Email']
+        return render_template('simple.html')
+    else:
+        return redirect(url_for('login'))    
 
 
 
@@ -49,22 +53,28 @@ def home():
 #find specific movie by title 
 @app.route('/findmoviebytitle' ,methods = ['GET' , 'POST'])
 def find_movie_by_title():
-    if request.method =='POST':
-            movie = movies.find_one({"title":request.form['title']})
+    if 'Email' in session:
+        email = session['Email']
+        if request.method =='POST':
+                movie = movies.find_one({"title":request.form['title']})
+                if movie != None:
+                    return render_template('movie_details.html' , movie = movie )
+        return render_template('movie-title.html')
+    else:
+        return redirect(url_for('login'))                
+
+    
+@app.route('/findmoviefromyear' , methods = ['GET' , 'POST'])
+def find_movie_from_year():
+    if 'Email' in session:
+        email = session['Email']
+        if request.method=='POST':
+            movie  = movies.find({"year":request.form['year']})
             if movie != None:
-                 movie = {'_id': str(movie['_id']) , 'Title' : movie['title'] , 
-                'Actors' : movie['actors'] , 'year' : movie , 'plot':movie['plot'] }
-                 return ''' {% for key, value in movie.items() %}
-                                  {{ value.item }} 
-                            {% endfor %}  '''
-    return render_template('movie-title.html')            
-
-    
-             
-
-
-    
-
+                return render_template('movie_details.html' , movie = movie)
+        return render_template('movie-year.html') 
+    else:
+        return redirect(url_for('login'))                       
 
 
 
@@ -126,7 +136,7 @@ def login():
 def logout():
     # remove the username from the session if it's there
     session.pop('Email', None)
-    return redirect(url_for('home'))
+    return redirect(url_for('login'))
 
 
 
