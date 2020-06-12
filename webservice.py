@@ -56,25 +56,42 @@ def find_movie_by_title():
     if 'Email' in session:
         email = session['Email']
         if request.method =='POST':
-                movie = movies.find_one({"title":request.form['title']})
-                if movie != None:
-                    return render_template('movie_details.html' , movie = movie )
+                movie = movies.find({"title":request.form['title']}).count()
+                if movie != 0:
+                    a_movie = movies.find({"title":request.form['title']})
+                    return render_template('movie_details.html' , movie = a_movie )
         return render_template('movie-title.html')
     else:
         return redirect(url_for('login'))                
 
-    
+
+
 @app.route('/findmoviefromyear' , methods = ['GET' , 'POST'])
 def find_movie_from_year():
     if 'Email' in session:
         email = session['Email']
         if request.method=='POST':
-            movie  = movies.find({"year":request.form['year']})
-            if movie != None:
-                return render_template('movie_details.html' , movie = movie)
+            movie  = movies.find({"year":request.form['year']}).count()
+            if movie != 0:
+                a_movie = movies.find({"year":request.form['year']})
+                return render_template('movie_details.html' , movie = a_movie)
         return render_template('movie-year.html') 
     else:
-        return redirect(url_for('login'))                       
+        return redirect(url_for('login'))   
+
+
+@app.route('/findmoviefromactor' , methods = ['GET' , 'POST'])
+def find_movie_from_actor():
+    if 'Email' in session:
+        email = session['Email']
+        if request.method=='POST':
+            movie  = movies.find({"actors":request.form['actors']}).count()
+            if movie != 0:
+                a_movie = movies.find({"actors":request.form['actors']})
+                return render_template('movie_details.html' , movie = a_movie)
+        return render_template('movie-year.html') 
+    else:
+        return redirect(url_for('login'))   
 
 
 

@@ -7,11 +7,12 @@
 </head>
 <body>
     
-    
-{% for key, value in movie %}
-        <h1>{{key}} : {{ value }} </h1>
+     
+{% for document in movie %}
+    {% for key , value in document.items()%}
+        <h1>{{key}} {{value}}</h1> 
+    {% endfor %}
 {% endfor %}
-
 
 </body>
 </html>
