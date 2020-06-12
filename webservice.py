@@ -42,6 +42,17 @@ def simpleuser():
     else:
         return redirect(url_for('login'))    
 
+@app.route('/adminuser')
+def adminuser():
+    if 'Email' in session:
+        email = session['Email']
+        return render_template('admin.html')
+    else:
+        return redirect(url_for('login'))    
+        
+
+
+
 
 
 @app.route('/')
@@ -79,7 +90,7 @@ def find_movie_from_year():
     else:
         return redirect(url_for('login'))   
 
-
+#run it 
 @app.route('/findmoviefromactor' , methods = ['GET' , 'POST'])
 def find_movie_from_actor():
     if 'Email' in session:
@@ -96,26 +107,23 @@ def find_movie_from_actor():
 
 
 #if admin
-@app.route('/insertmovie' , methods = ["POST"])
+@app.route('/insertmovie' , methods = ['GET' , 'POST'])
 def insert_movie():
-
-    data = None 
-    try:
-        data = json.loads(request.data)
-    except Exception as e:
-        return Response("Bad json content " , status = 500 , mimetype='application/json')
-    if data == None:
-        return Response("no data has been added",status = 500 , mimetype='application/json')
-    if not "title" in data or not "actors" in data:
-        return Response("Information incompleted", status = 500 , mimetype='application/json')
-    if hashnumbers(data["actors"])==True:
-        return Response("Insert valid actor names " ,status = 500 , mimetype='application/json')
-    if movies.find({"title":data["title"]}).count()==0:
-        movie = {"title": data["title"] , "actors" : data["actors"]}
-        movies.insert_one(movie)
-        return Response("Movie has been added . " ,status = 200 , mimetype='application/json')        
+    if 'Email' in session:
+        email = session['Email']
+        if request.method == 'POST':
+            movie = {"title":request.form['title'] , "actors":request.form['actors']}
+            movies.insert(movie)
+            return '''  <h1>  Movie has been inserted  <h1> '''
+        else:
+            return render_template('movie-insert.html') 
     else:
-        return Response("Movie already exists . " ,status = 200 , mimetype='application/json')
+        return redirect(url_for('login'))         
+
+    
+    
+
+
 
 @app.route('/register' , methods = ['GET' ,'POST'])
 def register():
@@ -143,6 +151,8 @@ def login():
                 session['Email'] = request.form['Email']
                 if loginuser["User"]=="Simple":
                     return redirect(url_for('simpleuser'))
+                elif loginuser["User"]=="Admin":
+                        return redirect(url_for('adminuser'))
             return 'Invalid email/password combination'
         return 'Invalid email'
     return render_template('login.html')            
@@ -151,7 +161,7 @@ def login():
 
 @app.route('/logout')
 def logout():
-    # remove the username from the session if it's there
+    # remove the email from the session if it's there
     session.pop('Email', None)
     return redirect(url_for('login'))
 
