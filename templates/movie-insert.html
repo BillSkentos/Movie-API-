@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> -  Insert movie - </title>
+</head>
+<body>
+
+    <form action="{{url_for('insert_movie')}}" , method = 'POST'>
+        <label for="movie-title">Enter title for new movie   : </label>
+        <input type="text" id="title" name="title"><br><br>
+        <label for="movie-actor">Enter protagonist for new movie : </label>
+        <input type="text" id="actor" name="actor"><br><br>
+        <input type="submit" value="Submit">
+      </form>
+        
+
+
+
+</body>
+</html>
