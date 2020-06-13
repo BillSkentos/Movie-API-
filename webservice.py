@@ -67,7 +67,7 @@ def find_movie_by_title():
     if 'Email' in session:
         email = session['Email']
         if request.method =='POST':
-                movie = movies.find({"title":request.form['title']}).count()
+                movie = movies.count_documents({"title":request.form['title']})
                 if movie != 0:
                     a_movie = movies.find({"title":request.form['title']})
                     return render_template('movie_details.html' , movie = a_movie )
@@ -82,7 +82,7 @@ def find_movie_from_year():
     if 'Email' in session:
         email = session['Email']
         if request.method=='POST':
-            movie  = movies.find({"year":request.form['year']}).count()
+            movie  = movies.count_documents({"year":request.form['year']})
             if movie != 0:
                 a_movie = movies.find({"year":request.form['year']})
                 return render_template('movie_details.html' , movie = a_movie)
@@ -96,11 +96,11 @@ def find_movie_from_actor():
     if 'Email' in session:
         email = session['Email']
         if request.method=='POST':
-            movie  = movies.find({"actors":request.form['actors']}).count()
+            movie  = movies.count_documents({"actors":request.form['actors']})
             if movie != 0:
                 a_movie = movies.find({"actors":request.form['actors']})
                 return render_template('movie_details.html' , movie = a_movie)
-        return render_template('movie-year.html') 
+        return render_template('movie-actor.html') 
     else:
         return redirect(url_for('login'))   
 
@@ -109,19 +109,75 @@ def find_movie_from_actor():
 #if admin
 @app.route('/insertmovie' , methods = ['GET' , 'POST'])
 def insert_movie():
-    if 'Email' in session:
+    if 'Email' in session and 'User' in session:
         email = session['Email']
-        if request.method == 'POST':
-            movie = {"title":request.form['title'] , "actors":request.form['actors']}
-            movies.insert(movie)
-            return '''  <h1>  Movie has been inserted  <h1> '''
+        user = session['User']
+        if user == 'Admin':
+            if request.method == 'POST':
+                movie = {"title":request.form['title'] , "actors":request.form['actors'] }
+                movies.insert_one(movie)
+                return '''  <h1>  Movie has been inserted  <h1> '''
+            else:
+                return render_template('movie-insert.html') 
         else:
-            return render_template('movie-insert.html') 
+            return redirect(url_for('login'))        
     else:
         return redirect(url_for('login'))         
 
     
-    
+@app.route('/deletemovie' , methods = ['GET' , 'POST'])
+def delete_movie():
+    if 'Email' in session and 'User' in session:
+        email = session['Email']
+        user = session['User']
+        if user == 'Admin':
+            if request.method == 'POST':
+                minimum = movies.find_one({"title":request.form['title']})
+                if minimum != None:
+                    movie_list = movies.find({"title":request.form['title']})
+                    for iterable in movie_list:
+                        if iterable['year']<minimum['year']:
+                            minimum=iterable
+                    movies.delete_one(minimum)
+                    return '''  <h1>  Movie has been deleted   </h1>  '''
+                else:
+                    return '''  <h1> Movie does not exist  </h1>  '''           
+            else:
+                return render_template("movie-delete.html")
+        else:
+            return redirect(url_for('login'))          
+    else:
+        return redirect(url_for('login'))           
+
+
+
+@app.route('/deleteuser' , methods = ['GET' , 'POST'])
+def delete_user():
+    if 'Email' in session and 'User' in session:
+        email = session['Email']
+        user = session['User']
+        if user == 'Admin':
+            if request.method == 'POST':
+                usr = users.find_one({"Email":request.form['Email']})
+                if usr != None:
+                    if usr['User'] != 'Simple':
+                        return ''' <h1> Deletion failed   </h1>  '''
+                    else:
+                        users.delete_one(usr)
+                        return ''' <h1>  User has been deleted   </h1>   '''  
+                else:
+                    return '''  <h1>  User does not exist </h1>  '''
+            else:
+                return render_template('user-delete.html')
+        else:
+            return redirect(url_for('login'))        
+    else:
+        return redirect(url_for('login'))    
+
+
+
+
+
 
 
 
@@ -135,6 +191,7 @@ def register():
             , "Comments":[]}
             users.insert_one(user)
             session['Name'] = request.form['Name']
+            session['User'] = "Simple"
             return redirect(url_for('home'))    
 
         return 'User with specific email already exists .'
@@ -150,9 +207,11 @@ def login():
             if  bcrypt.check_password_hash(loginuser['Password'],request.form['Password']):
                 session['Email'] = request.form['Email']
                 if loginuser["User"]=="Simple":
+                    session['User'] = "Simple"
                     return redirect(url_for('simpleuser'))
                 elif loginuser["User"]=="Admin":
-                        return redirect(url_for('adminuser'))
+                    session['User'] = "Admin"
+                    return redirect(url_for('adminuser'))
             return 'Invalid email/password combination'
         return 'Invalid email'
     return render_template('login.html')            
