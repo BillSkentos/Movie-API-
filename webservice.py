@@ -2,12 +2,8 @@ from pymongo import MongoClient
 from flask import Flask , request , Response , jsonify , redirect , render_template,url_for,flash,redirect , session
 from pymongo.errors import DuplicateKeyError
 import json
-from flask_wtf import FlaskForm
-from wtforms import StringField,PasswordField,SubmitField,BooleanField
-from wtforms.validators import DataRequired ,Length , Email ,EqualTo , ValidationError
 import os 
 from flask_bcrypt import Bcrypt
-from flask_login import LoginManager , UserMixin ,login_user , login_manager ,current_user ,logout_user , login_required
 from markupsafe import escape
 
 
@@ -36,22 +32,22 @@ app.config['SECRET_KEY'] = SECRET_KEY
 
 @app.route('/simpleuser')
 def simpleuser():
-    if 'Email' in session:
+    if 'Email' in session and 'User' in session:
         email = session['Email']
+        user = session['User']
         return render_template('simple.html')
     else:
         return redirect(url_for('login'))    
 
 @app.route('/adminuser')
 def adminuser():
-    if 'Email' in session:
+    if 'Email' in session and 'User' in session:
         email = session['Email']
+        user = session['User']
         return render_template('admin.html')
     else:
         return redirect(url_for('login'))    
         
-
-
 
 
 
@@ -64,12 +60,13 @@ def home():
 #find specific movie by title 
 @app.route('/findmoviebytitle' ,methods = ['GET' , 'POST'])
 def find_movie_by_title():
-    if 'Email' in session:
+    if 'Email' in session and 'User' in session:
         email = session['Email']
+        user = session['User']
         if request.method =='POST':
                 movie = movies.count_documents({"title":request.form['title']})
                 if movie != 0:
-                    a_movie = movies.find({"title":request.form['title']})
+                    a_movie = movies.find({"title":request.form['title']}) 
                     return render_template('movie_details.html' , movie = a_movie )
         return render_template('movie-title.html')
     else:
@@ -106,7 +103,41 @@ def find_movie_from_actor():
 
 
 
-#if admin
+
+
+
+@app.route('/commentmovie' , methods = ['GET' , 'POST'])
+def comment_movie():
+    if 'Email' in session and 'User' in session:
+        email = session['Email']
+        user = session['User']
+        if request.method == 'POST':
+            movie = movies.find_one({"title":request.form['movie'] , "year":request.form['year']})
+            if movie != None:
+                movies.update_one(  { "title":request.form['movie']  , "year":request.form['year']}, 
+                {"$push":{"comments":email + ":" + request.form['comment']}})
+                users.update_one({"Email":email}, 
+                {"$push":{"Comments":request.form['movie'] + " " + request.form['year'] + ":" + request.form['comment']} })
+                return '''  Comment has been added  '''
+            else:
+                return """  <h2> Movie not found   </h2> """    
+        else:
+            return render_template('movie-comment.html')    
+    else:
+        return redirect(url_for('login'))        
+    
+ 
+
+
+
+
+
+
+
+
+
+
+# admin
 @app.route('/insertmovie' , methods = ['GET' , 'POST'])
 def insert_movie():
     if 'Email' in session and 'User' in session:
@@ -114,7 +145,8 @@ def insert_movie():
         user = session['User']
         if user == 'Admin':
             if request.method == 'POST':
-                movie = {"title":request.form['title'] , "actors":request.form['actors'] }
+                movie = {"title":request.form['title'] , "actors":request.form['actors'] , "comments":[] , "plot": "not added yet" , 
+                "ratings":"0"}
                 movies.insert_one(movie)
                 return '''  <h1>  Movie has been inserted  <h1> '''
             else:
@@ -124,7 +156,7 @@ def insert_movie():
     else:
         return redirect(url_for('login'))         
 
-    
+#admin    
 @app.route('/deletemovie' , methods = ['GET' , 'POST'])
 def delete_movie():
     if 'Email' in session and 'User' in session:
@@ -150,7 +182,7 @@ def delete_movie():
         return redirect(url_for('login'))           
 
 
-
+#admin
 @app.route('/deleteuser' , methods = ['GET' , 'POST'])
 def delete_user():
     if 'Email' in session and 'User' in session:
@@ -177,51 +209,75 @@ def delete_user():
 
 
 
+#admin
+@app.route('/upgradeuser' , methods = ['GET', 'POST'])
+def upgrade_user():
+    if 'Email' in session and 'User' in session:
+        email = session['Email']
+        user = session['User']
+        if user == 'Admin':
+            if request.method == 'POST':
+                specific_user = users.find_one({"Email":request.form['email']})
+                if specific_user != None:
+                    users.update_one({"Email":request.form['email']} , {'$set':{"User":"Admin"}})
+                    return ''' <h1>  User has been updated to Admin .  </h1>   '''
+                else:
+                    return ''' <h1> User does not exist </h1>  '''
+            else:
+                return render_template('user-upgrade.html')        
+            
+        else:
+            return redirect(url_for('login'))    
+    else:
+        return redirect(url_for('login'))
+
 
 
 
 
 @app.route('/register' , methods = ['GET' ,'POST'])
 def register():
-    if request.method=='POST':
-        user = users.find_one({"Email":request.form['Email']})
-        if user == None:
-            hashed_password = bcrypt.generate_password_hash(request.form['Password']).decode('utf-8')
-            user = {"Name":request.form['Name'],"Surname":request.form['Surname'],"Email":request.form['Email'],"Password":hashed_password,"User":"Simple"
-            , "Comments":[]}
-            users.insert_one(user)
-            session['Name'] = request.form['Name']
-            session['User'] = "Simple"
-            return redirect(url_for('home'))    
+        if request.method=='POST':
+            usr = users.find_one({"Email":request.form['Email']})
+            if usr == None:
+                hashed_password = bcrypt.generate_password_hash(request.form['Password']).decode('utf-8')
+                usr = {"Name":request.form['Name'],"Surname":request.form['Surname'],"Email":request.form['Email'],"Password":hashed_password,"User":"Simple"
+                , "Comments":[]}
+                users.insert_one(usr)
+                session['Name'] = request.form['Name']
+                session['User'] = "Simple"
+                return redirect(url_for('home'))    
 
-        return 'User with specific email already exists .'
-
-    return render_template('register.html')            
+            return 'User with specific email already exists .'
+        else:
+            return render_template('register.html')
 
 
 @app.route('/login' , methods = ['GET' , 'POST'])
 def login():
-    if request.method == 'POST':
-        loginuser = users.find_one({"Email":request.form['Email']})
-        if loginuser:
-            if  bcrypt.check_password_hash(loginuser['Password'],request.form['Password']):
-                session['Email'] = request.form['Email']
-                if loginuser["User"]=="Simple":
-                    session['User'] = "Simple"
-                    return redirect(url_for('simpleuser'))
-                elif loginuser["User"]=="Admin":
-                    session['User'] = "Admin"
-                    return redirect(url_for('adminuser'))
-            return 'Invalid email/password combination'
-        return 'Invalid email'
-    return render_template('login.html')            
-
+        if request.method == 'POST':
+            loginuser = users.find_one({"Email":request.form['Email']})
+            if loginuser:
+                if  bcrypt.check_password_hash(loginuser['Password'],request.form['Password']):
+                    session['Email'] = request.form['Email']
+                    if loginuser["User"]=="Simple":
+                        session['User'] = "Simple"
+                        return redirect(url_for('simpleuser'))
+                    elif loginuser["User"]=="Admin":
+                        session['User'] = "Admin"
+                        return redirect(url_for('adminuser'))
+                return 'Invalid email/password combination'
+            return 'Invalid email'
+        else:
+            return render_template('login.html')            
+     
 
 
 @app.route('/logout')
 def logout():
-    # remove the email from the session if it's there
+    # remove the email and user from the session if it's there
     session.pop('Email', None)
+    session.pop('User' , None)
     return redirect(url_for('login'))
 
 
