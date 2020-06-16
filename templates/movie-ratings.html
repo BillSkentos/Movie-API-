@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>-Rate movie -</title>
+</head>
+<body>
+    
+    <form action='/ratemovie/{{movie.movie_id}}'  method="post" id="ratingform">
+        <label for="Movie">{{movie.title}}</label>
+        <input type="hidden" name="movie_id" value={{movie.movie_id}}>
+        <select name="rating"form="ratingform">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+        <br></br>
+        <button type="submit">Submit</button>
+    <form>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>- Upgrade User -</title>
+</head>
+<body>
+    
+<form action="{{url_for('upgrade_user')}}" , method = 'POST'>
+    <label for="user-mail">Enter user email to make the user an admin : </label>
+    <input type="text" id="email" name="email"><br><br>
+    <input type="submit" value="Submit">
+  </form>
+</body>
+</html>
