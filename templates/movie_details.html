@@ -15,8 +15,10 @@
         <h2>Published   : {{document.year}}</h2>
         <h2>Plot  : {{document.plot}}</h2>
         <h2>Actors  : {{document.actors}}</h2>
-         
-
+        <h2>Comments :</h2>
+         {% for comment in document.comments%}
+            <li> {{comment}} </li>
+         {% endfor%} 
     </fieldset> 
     
 

@@ -23,6 +23,7 @@ def hashnumbers(inputString):
     return any(char.isdigit() for char in inputString)
 
 
+
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 
@@ -76,8 +77,9 @@ def find_movie_by_title():
 
 @app.route('/findmoviefromyear' , methods = ['GET' , 'POST'])
 def find_movie_from_year():
-    if 'Email' in session:
+    if 'Email' in session and 'User' in session:
         email = session['Email']
+        user = session['User']
         if request.method=='POST':
             movie  = movies.count_documents({"year":request.form['year']})
             if movie != 0:
@@ -106,6 +108,90 @@ def find_movie_from_actor():
 
 
 
+def find_average_rating(title,year,user_rating):
+    movie = movies.find_one({"title":title , "year":year})
+    if int(movie['ratings']) == 0:
+        return int(user_rating)
+    else:
+        movie['ratings'] = (int(movie['ratings']) + int(user_rating))/2
+        return movie['ratings']    
+        
+
+
+
+@app.route('/ratemovie' ,methods = ['GET' , 'POST'])
+def rate_movie():
+     if 'Email' in session and 'User' in session:
+         email = session['Email']
+         user = session['User']
+         if request.method == 'POST':
+            movie = movies.find_one({"title":request.form['movie'] , "year":request.form['year']})
+            if movie != None:
+                usr = users.find_one({"Email":email})
+                for iterable in usr['ratings']:
+                    if request.form['movie'] in iterable:
+                            users.update_one({"Email":email} , {"$pull":{"ratings":iterable}})
+                            old_rating = return_rating(iterable)[-1]
+                            
+                            movies.update_one({"title":request.form['movie'] , "year":request.form['year']} , 
+                            {"$set": {"ratings": find_rating_after_deletion(request.form['movie'] , 
+                            request.form['year'], old_rating)} })
+
+                            users.update_one({"Email":email} , 
+                            {"$push":{"ratings":request.form['movie'] + ":" + request.form['rating'] }})
+
+                            movies.update_one({"title":request.form['movie'] , "year":request.form['year']} , 
+                            {"$set": {"ratings": find_average_rating(request.form['movie'] , 
+                            request.form['year'], request.form['rating'])} })
+                    else:
+                            users.update_one({"Email":email} , 
+                            {"$push":{"ratings":request.form['movie'] + ":" + request.form['rating'] }})
+                            movies.update_one({"title":request.form['movie'] , "year":request.form['year']} , 
+                            {"$set": {"ratings": find_average_rating(request.form['movie'] , request.form['year'], request.form['rating'])} })
+                return '''  <h2> Movie has been rated </h2>   '''
+         else:
+             return render_template('movie-rate.html')    
+
+     else:
+         return redirect(url_for('login'))  
+
+
+
+
+def find_rating_after_deletion(title,year,user_rating):
+    movie = movies.find_one({"title":title , "year":year})
+    movie['ratings'] = (int(movie['ratings']) - int(user_rating))/2
+    if movie['ratings'] <=0:
+        movie['ratings'] = 0
+    return movie['ratings'] 
+
+
+def return_rating(inputString):
+    return [char for char in inputString if char.isdigit()]
+
+
+
+@app.route('/removerating' , methods = ['GET', 'POST'])
+def remove_rating():
+    if 'Email' in session and 'User' in session and 'rating' in session:
+        email = session['Email']
+        user = session['User']
+        if request.method == 'POST':
+            movie = movies.find_one({"title":request.form['movie'] , "year": request.form['year']})
+            if movie != None:
+                usr = users.find_one({"Email":email})
+                for iterable in usr['ratings']:
+                    if request.form['movie'] in iterable :
+                        users.update_one({"Email":email} , {"$pull":{"ratings":iterable}  }) 
+                        movies.update_one({"title":request.form['movie'] , "year":request.form['year'] }, {"$set": {"ratings": find_rating_after_deletion(request.form['movie'] , request.form['year'], return_rating(iterable)[-1]) } } )
+                return ''' <h2> Rating has been removed from movie   </h2>  '''        
+            else:
+                return ''' <h2> Movie does not exist  </h2>  '''    
+        else:
+            return render_template('movie-rate.html')    
+    else:
+        return redirect(url_for('login'))
+
 @app.route('/commentmovie' , methods = ['GET' , 'POST'])
 def comment_movie():
     if 'Email' in session and 'User' in session:
@@ -127,11 +213,7 @@ def comment_movie():
         return redirect(url_for('login'))        
     
  
-
-
-
-
-
+   
 
 
 
@@ -145,7 +227,7 @@ def insert_movie():
         user = session['User']
         if user == 'Admin':
             if request.method == 'POST':
-                movie = {"title":request.form['title'] , "actors":request.form['actors'] , "comments":[] , "plot": "not added yet" , 
+                movie = {"title":request.form['title'] , "actors":request.form['actors'] , "comments":[] , "plot": "not added yet" , "year":"not added yet", 
                 "ratings":"0"}
                 movies.insert_one(movie)
                 return '''  <h1>  Movie has been inserted  <h1> '''
@@ -242,7 +324,7 @@ def register():
             if usr == None:
                 hashed_password = bcrypt.generate_password_hash(request.form['Password']).decode('utf-8')
                 usr = {"Name":request.form['Name'],"Surname":request.form['Surname'],"Email":request.form['Email'],"Password":hashed_password,"User":"Simple"
-                , "Comments":[]}
+                , "Comments":[] , "ratings":[]}
                 users.insert_one(usr)
                 session['Name'] = request.form['Name']
                 session['User'] = "Simple"
