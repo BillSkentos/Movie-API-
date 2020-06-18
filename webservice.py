@@ -5,7 +5,7 @@ import json
 import os 
 from flask_bcrypt import Bcrypt
 from markupsafe import escape
-
+import re
 
 
 
@@ -108,89 +108,77 @@ def find_movie_from_actor():
 
 
 
-def find_average_rating(title,year,user_rating):
-    movie = movies.find_one({"title":title , "year":year})
-    if int(movie['ratings']) == 0:
-        return int(user_rating)
-    else:
-        movie['ratings'] = (int(movie['ratings']) + int(user_rating))/2
-        return movie['ratings']    
-        
-
 
 
 @app.route('/ratemovie' ,methods = ['GET' , 'POST'])
 def rate_movie():
-     if 'Email' in session and 'User' in session:
-         email = session['Email']
-         user = session['User']
-         if request.method == 'POST':
+    if 'Email' in session and 'User' in session:
+        email = session['Email']
+        user = session['User']
+        if request.method == 'POST':
             movie = movies.find_one({"title":request.form['movie'] , "year":request.form['year']})
             if movie != None:
                 usr = users.find_one({"Email":email})
-                for iterable in usr['ratings']:
-                    if request.form['movie'] in iterable:
-                            users.update_one({"Email":email} , {"$pull":{"ratings":iterable}})
-                            old_rating = return_rating(iterable)[-1]
+
+                if not usr['ratings']:
+                    users.update_one({"Email":email} , 
+                    {"$push": { 'ratings':request.form['movie'] + ":" + request.form['rating']} } )
+                    movies.update_one({"title":request.form['movie'] , "year":request.form['year']} , 
+                    {'$set':{'ratings': find_average(request.form['movie'] , request.form['rating'])} } )
+
+                else:
+                    for i , rating in enumerate(usr['ratings']):
+
+                        if request.form['movie'] in rating:
+                            old_rating = -int(re.findall(r"\d+", rating)[-1])
+                            users.update_one({"Email":email} ,{"$pull":{'ratings':rating}} )
+
+                            movies.update_one({"title":request.form['movie'] , "year":request.form['year']} , 
+                            {"$set": {'ratings':find_average(request.form['movie'] , old_rating)} } )
+
+                            
+                            users.update_one({"Email":email} , 
+                            {"$push": {'ratings':request.form['movie'] + ":" + request.form['rating']}})
+
                             
                             movies.update_one({"title":request.form['movie'] , "year":request.form['year']} , 
-                            {"$set": {"ratings": find_rating_after_deletion(request.form['movie'] , 
-                            request.form['year'], old_rating)} })
+                            {"$set": {'ratings':find_average(request.form['movie'] , request.form['rating'])} } )
 
+                        elif i+1  == len(usr['ratings']):
                             users.update_one({"Email":email} , 
-                            {"$push":{"ratings":request.form['movie'] + ":" + request.form['rating'] }})
+                            {"$push": {'ratings':request.form['movie'] + ":" + request.form['rating']}})
 
                             movies.update_one({"title":request.form['movie'] , "year":request.form['year']} , 
-                            {"$set": {"ratings": find_average_rating(request.form['movie'] , 
-                            request.form['year'], request.form['rating'])} })
-                    else:
-                            users.update_one({"Email":email} , 
-                            {"$push":{"ratings":request.form['movie'] + ":" + request.form['rating'] }})
-                            movies.update_one({"title":request.form['movie'] , "year":request.form['year']} , 
-                            {"$set": {"ratings": find_average_rating(request.form['movie'] , request.form['year'], request.form['rating'])} })
-                return '''  <h2> Movie has been rated </h2>   '''
-         else:
-             return render_template('movie-rate.html')    
+                            {"$set": {'ratings':find_average(request.form['movie'] , request.form['rating'])} } )
 
-     else:
-         return redirect(url_for('login'))  
-
-
-
-
-def find_rating_after_deletion(title,year,user_rating):
-    movie = movies.find_one({"title":title , "year":year})
-    movie['ratings'] = (int(movie['ratings']) - int(user_rating))/2
-    if movie['ratings'] <=0:
-        movie['ratings'] = 0
-    return movie['ratings'] 
-
-
-def return_rating(inputString):
-    return [char for char in inputString if char.isdigit()]
+                return '''  <h2> Movie has been rated  </h2> '''
+        else:
+            return render_template('movie-rate.html')        
+    else:
+        return redirect(url_for('login'))    
+     
 
 
 
 @app.route('/removerating' , methods = ['GET', 'POST'])
 def remove_rating():
-    if 'Email' in session and 'User' in session and 'rating' in session:
-        email = session['Email']
-        user = session['User']
-        if request.method == 'POST':
-            movie = movies.find_one({"title":request.form['movie'] , "year": request.form['year']})
-            if movie != None:
-                usr = users.find_one({"Email":email})
-                for iterable in usr['ratings']:
-                    if request.form['movie'] in iterable :
-                        users.update_one({"Email":email} , {"$pull":{"ratings":iterable}  }) 
-                        movies.update_one({"title":request.form['movie'] , "year":request.form['year'] }, {"$set": {"ratings": find_rating_after_deletion(request.form['movie'] , request.form['year'], return_rating(iterable)[-1]) } } )
-                return ''' <h2> Rating has been removed from movie   </h2>  '''        
-            else:
-                return ''' <h2> Movie does not exist  </h2>  '''    
-        else:
-            return render_template('movie-rate.html')    
-    else:
-        return redirect(url_for('login'))
+    return '''  Removed '''
+
+
+
+def find_average(movie,user_rating):
+    ratings_list=[]
+    average = 0
+    for specific_user in users.find():
+        for rating in specific_user['ratings']:
+            if movie in rating:
+                ratings_list.append(int(re.findall(r"\d+", rating)[-1]))
+
+    average=sum(ratings_list)/len(ratings_list)
+    return int(average)
+
+
+
 
 @app.route('/commentmovie' , methods = ['GET' , 'POST'])
 def comment_movie():
