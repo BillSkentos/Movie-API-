@@ -162,7 +162,31 @@ def rate_movie():
 
 @app.route('/removerating' , methods = ['GET', 'POST'])
 def remove_rating():
-    return '''  Removed '''
+    if 'Email' in session and 'User' in session:
+        email = session['Email']
+        user = session['User']
+        if request.method == 'POST':
+            usr = users.find_one({"Email":email})
+            movie = movies.find_one({"title":request.form['movie'] , "year":request.form['year']})
+            if movie != None:
+        
+                for rating in usr['ratings']:
+                    if request.form['movie'] in rating:
+
+                        old_rating = -int(re.findall(r"\d+", rating)[-1])
+                        users.update_one({"Email":email} , {"$pull": {"ratings":rating}}) 
+
+                        movies.update_one({"title":request.form['movie'] , "year":request.form['year']} , 
+                        {"$set": {'ratings':find_average(request.form['movie'] , old_rating)} } )
+                return ''' <h2> Rating removed ! </h2> '''
+
+            else:
+                return ''' <h2> Movie not found  <h2> '''             
+
+        else:
+            return render_template('del-rate.html')    
+    else:
+        return redirect(url_for('login'))    
 
 
 
@@ -175,6 +199,7 @@ def find_average(movie,user_rating):
                 ratings_list.append(int(re.findall(r"\d+", rating)[-1]))
 
     average=sum(ratings_list)/len(ratings_list)
+
     return int(average)
 
 
