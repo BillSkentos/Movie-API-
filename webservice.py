@@ -287,12 +287,22 @@ def delete_movie():
                     for iterable in movie_list:
                         if iterable['year']<minimum['year']:
                             minimum=iterable
+                    store_year = minimum['year'] #minimum will be deleted so store the movie year for later use 
                     movies.delete_one(minimum)
                     cur = users.find()
                     for xristis in cur:
                         for rating in xristis['ratings']:
                             if request.form['title'] in rating:
                                 users.update_one( xristis  , {"$pull":{ 'ratings': rating }  } )
+                    i = users.find()
+                    for customer in i:
+                        for comment in customer['Comments']:
+                            if request.form['title'] in comment and store_year in comment:
+                                print(comment) 
+                                users.update_one( {"Comments": comment } ,
+                                {"$pull": {"Comments": comment}})
+
+                    
                     return '''  <h1>  Movie has been deleted   </h1>  '''
                 else:
                     return '''  <h1> Movie does not exist  </h1>  '''           
