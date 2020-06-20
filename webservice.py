@@ -89,16 +89,17 @@ def find_movie_from_year():
     else:
         return redirect(url_for('login'))   
 
-#run it 
 @app.route('/findmoviefromactor' , methods = ['GET' , 'POST'])
 def find_movie_from_actor():
-    if 'Email' in session:
+    if 'Email' in session and 'User' in session:
+        user = session['User']
         email = session['Email']
         if request.method=='POST':
-            movie  = movies.count_documents({"actors":request.form['actors']})
-            if movie != 0:
-                a_movie = movies.find({"actors":request.form['actors']})
+            movie_list = movies.find( {"actors": {"$in": [ request.form['actor'] ] } } )
+            if movie_list !=None:
+                a_movie = movies.find( {"actors": {"$in": [ request.form['actor'] ] } } )    
                 return render_template('movie_details.html' , movie = a_movie)
+                
         return render_template('movie-actor.html') 
     else:
         return redirect(url_for('login'))   
@@ -119,8 +120,9 @@ def rate_movie():
             movie = movies.find_one({"title":request.form['movie'] , "year":request.form['year']})
             if movie != None:
                 usr = users.find_one({"Email":email})
-
+                print("Entered")
                 if not usr['ratings']:
+                    print("empty")
                     users.update_one({"Email":email} , 
                     {"$push": { 'ratings':request.form['movie'] + ":" + request.form['rating']} } )
                     movies.update_one({"title":request.form['movie'] , "year":request.form['year']} , 
@@ -130,9 +132,10 @@ def rate_movie():
                     for i , rating in enumerate(usr['ratings']):
 
                         if request.form['movie'] in rating:
+                            print("found")
                             old_rating = -int(re.findall(r"\d+", rating)[-1])
                             users.update_one({"Email":email} ,{"$pull":{'ratings':rating}} )
-
+                            print("Old rating is " , old_rating)
                             movies.update_one({"title":request.form['movie'] , "year":request.form['year']} , 
                             {"$set": {'ratings':find_average(request.form['movie'] , old_rating)} } )
 
@@ -145,6 +148,7 @@ def rate_movie():
                             {"$set": {'ratings':find_average(request.form['movie'] , request.form['rating'])} } )
 
                         elif i+1  == len(usr['ratings']):
+                            print("not found I will update")
                             users.update_one({"Email":email} , 
                             {"$push": {'ratings':request.form['movie'] + ":" + request.form['rating']}})
 
@@ -199,7 +203,9 @@ def find_average(movie,user_rating):
                 ratings_list.append(int(re.findall(r"\d+", rating)[-1]))
 
     average=sum(ratings_list)/len(ratings_list)
-
+    for i in ratings_list:
+        print(i)
+    print("Average is :" , average)   
     return int(average)
 
 
@@ -232,6 +238,18 @@ def comment_movie():
 
 
 
+
+@app.route('/deleteaccount' , methods = ['GET'])
+def delete_account():
+    if 'Email' in session and 'User' in session:
+        email = session['Email']
+        user = session['User']
+        users.delete_one({"Email":email})
+        return render_template('moviehome.html' , message = 'Account has been deleted')
+    else:
+        return redirect(url_for('login'))    
+
+
 # admin
 @app.route('/insertmovie' , methods = ['GET' , 'POST'])
 def insert_movie():
@@ -240,9 +258,11 @@ def insert_movie():
         user = session['User']
         if user == 'Admin':
             if request.method == 'POST':
-                movie = {"title":request.form['title'] , "actors":request.form['actors'] , "comments":[] , "plot": "not added yet" , "year":"not added yet", 
+                movie = {"title":request.form['title'] , "actors":[] , "comments":[] , "plot": "not added yet" , "year":"not added yet", 
                 "ratings":"0"}
                 movies.insert_one(movie)
+                movies.update_many({"title":request.form['title']}  ,  
+                {"$push":{"actors":request.form['actors']}}  )
                 return '''  <h1>  Movie has been inserted  <h1> '''
             else:
                 return render_template('movie-insert.html') 
@@ -260,12 +280,19 @@ def delete_movie():
         if user == 'Admin':
             if request.method == 'POST':
                 minimum = movies.find_one({"title":request.form['title']})
+                print(minimum['title'])
                 if minimum != None:
+                    print("Entered")
                     movie_list = movies.find({"title":request.form['title']})
                     for iterable in movie_list:
                         if iterable['year']<minimum['year']:
                             minimum=iterable
                     movies.delete_one(minimum)
+                    cur = users.find()
+                    for xristis in cur:
+                        for rating in xristis['ratings']:
+                            if request.form['title'] in rating:
+                                users.update_one( xristis  , {"$pull":{ 'ratings': rating }  } )
                     return '''  <h1>  Movie has been deleted   </h1>  '''
                 else:
                     return '''  <h1> Movie does not exist  </h1>  '''           
@@ -330,6 +357,7 @@ def upgrade_user():
 
 
 
+
 @app.route('/register' , methods = ['GET' ,'POST'])
 def register():
         if request.method=='POST':
@@ -339,7 +367,7 @@ def register():
                 usr = {"Name":request.form['Name'],"Surname":request.form['Surname'],"Email":request.form['Email'],"Password":hashed_password,"User":"Simple"
                 , "Comments":[] , "ratings":[]}
                 users.insert_one(usr)
-                session['Name'] = request.form['Name']
+                session['Email'] = request.form['Email']
                 session['User'] = "Simple"
                 return redirect(url_for('home'))    
 
