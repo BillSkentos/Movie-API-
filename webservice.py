@@ -252,22 +252,13 @@ def delete_comment():
                 if i+1 == comment_num:
                     print("Comment number exists")
                     exists = True
-                    users.update_one(
-                    { "Email": email } , 
-                    [{ 
-                        "Comments": {
-                            "$concatArrays": [
-                            { "$slice": ["$Comments", i] },
-                            { "$slice": ["$Comments", i+1, { "$size": "$Comments" } ] } 
-                            ]
-                        }
-                        }
-                    ]
-                    )
+                    users.update_one({"Email":email} , 
+                    {"$pull":{"Comments":value}})
                 elif i+1 == len(usr['Comments']) and exists == False:
                     print('Comment does not exist')
+                    return ''' Comment with specific number in list does not exist '''
 
-            return ''' hi '''
+            return '''  Comment has been deleted '''
 
         else:
             return redirect(url_for('login'))       
