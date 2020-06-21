@@ -238,6 +238,42 @@ def comment_movie():
 
 
 
+@app.route('/deletecomment' , methods = ['GET' , 'POST'])
+def delete_comment():
+    if 'Email' in session and 'User' in session:
+        email = session['Email']
+        user = session['User']
+        if request.method == 'POST':
+            usr = users.find_one({"Email":email})
+            comment_num = request.form['comm-num']
+            comment_num = int(comment_num)
+            exists = False
+            for i , value in enumerate(usr['Comments']):
+                if i+1 == comment_num:
+                    print("Comment number exists")
+                    exists = True
+                    users.update_one({"Email":email} , {"$set" : {"Comments.i+1" : "deleted" } } )
+                    users.update_one({"Email":email} , {"$pull":{"Comments":"deleted" }})
+                elif i+1 == len(usr['Comments']) and exists == False:
+                    print('Comment does not exist')
+
+            return ''' hi '''
+
+        else:
+            return redirect(url_for('login'))       
+    else:
+        return redirect(url_for('login'))    
+
+@app.route('/viewcommentsandratings' , methods = ['GET'])
+def view_comments_and_ratings():
+    if 'Email' in session and 'User' in session:
+        email = session['Email']
+        user = session['User']
+        usr = users.find_one({"Email":email})
+        return render_template('view-comms-rates.html' , user = usr)
+                
+    else:
+        return redirect(url_for('login'))    
 
 @app.route('/deleteaccount' , methods = ['GET'])
 def delete_account():
