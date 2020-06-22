@@ -280,6 +280,10 @@ def view_comments_and_ratings():
     if 'Email' in session and 'User' in session:
         email = session['Email']
         user = session['User']
+        if 'Flag' in session:
+            session['Flag'] = False
+        elif 'Flag' not in session:
+            session['Flag'] = False    
         usr = users.find_one({"Email":email})
         return render_template('view-comms-rates.html' , user = usr)
                 
@@ -293,11 +297,12 @@ def delete_account():
         user = session['User']
         users.delete_one({"Email":email})
         user_movies = movies.find()
-        for tainia in user_movies:
-            for comment in tainia['comments']:
+        for movie in user_movies:
+            for comment in movie['comments']:
                 if email in comment:
-                    print("email here ")
-                    movies.update_one(tainia  ,{"$pull": {"comments":comment}}) #deletes only the first 
+                    print("email found ") 
+                    movies.update_one( {"comments": comment } ,
+                    {"$pull": {"comments": comment}})
         return render_template('moviehome.html' , message = 'Account has been deleted')
     else:
         return redirect(url_for('login'))    
@@ -421,6 +426,22 @@ def upgrade_user():
 
 
 
+
+
+#admin
+@app.route('/viewanddelete' , methods = ['GET'])
+def view_and_delete():
+    if 'Email' in session and 'User' in session:
+        email = session['Email']
+        user = session['User']
+        if user == 'Admin':
+            session['Flag'] =True
+            movie_list = movies.find()
+            return render_template('view-comms-rates.html', movies = movie_list)
+        else:
+            return redirect(url_for('login'))     
+    else:
+        return redirect(url_for('login'))
 @app.route('/register' , methods = ['GET' ,'POST'])
 def register():
         if request.method=='POST':
