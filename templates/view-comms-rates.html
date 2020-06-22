@@ -20,7 +20,6 @@
 <div>
 
 
-{%if session['User']=='Simple' or session['Flag'] == False%}    
     <fieldset>    
     <h1>Your comments in MovieFlix : </h1>
         {% set i = [1]%} 
@@ -45,23 +44,11 @@
     </div>
 
     <form  action = "{{url_for('delete_comment')}}"  method="post">
-        <label for="deletw-comm">Enter comment number to delete specific comment in list </label>
+        <label for="delete-comm">Enter comment number to delete specific comment in list </label>
         <input type = "number" id = "comm-num" name = "comm-num">
         <button type = "submit">Delete the comment</button> 
     </form>
 
-{%elif session['User']=='Admin' and session['Flag'] == True%}
-    <fieldset>
-        <h1> List of comments in movies  </h1>
-        {% set j = [1]%}
-        {%for movie in movies%}
-            {%for comment in movie.comments%}
-                <h2> {{j}} : {{ comment}} </h2>
-                {% if j.append(j.pop() + 1) %}{% endif %}
-            {%endfor%}
-        {%endfor%}
-    </fieldset>
-{%endif%}
 
 
 

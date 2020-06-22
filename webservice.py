@@ -279,11 +279,7 @@ def delete_comment():
 def view_comments_and_ratings():
     if 'Email' in session and 'User' in session:
         email = session['Email']
-        user = session['User']
-        if 'Flag' in session:
-            session['Flag'] = False
-        elif 'Flag' not in session:
-            session['Flag'] = False    
+        user = session['User']    
         usr = users.find_one({"Email":email})
         return render_template('view-comms-rates.html' , user = usr)
                 
@@ -428,20 +424,44 @@ def upgrade_user():
 
 
 
-#admin
-@app.route('/viewanddelete' , methods = ['GET'])
+#admin deletes comments 
+@app.route('/viewanddelete' , methods = ['GET' , 'POST'])
 def view_and_delete():
     if 'Email' in session and 'User' in session:
         email = session['Email']
         user = session['User']
         if user == 'Admin':
-            session['Flag'] =True
             movie_list = movies.find()
-            return render_template('view-comms-rates.html', movies = movie_list)
+            if request.method == 'POST':
+                comment_num = request.form['comm-number']
+                comment_num = int(comment_num)
+                exists = False
+                for tainia in movie_list:
+                    for i , comment in enumerate(tainia['comments']):
+                        if i+1 == comment_num:
+                            print("comment found")
+                            exists = True
+                            movies.update_one(tainia , {"$pull":{"comments":comment}})
+                            user_list = users.find()
+                            for xristis in user_list:
+                                for  sxolio in xristis['Comments']:
+                                    in_str = all(x in comment for x in sxolio.replace(":", " ").split(" "))
+                                    if in_str == True:
+                                        users.update_one(xristis , {"$pull": {"Comments":sxolio}})
+                                        print("pulled!")
+                            return '''hi  '''
+                        elif i+1 == len(tainia['comments']) and exists==False:
+                            print("comment not found")
+                            return ''' bye '''
+                    return render_template('delete-user-comment.html')          
+            return render_template('delete-user-comment.html', movies = movie_list)
         else:
             return redirect(url_for('login'))     
     else:
         return redirect(url_for('login'))
+
+
+
 @app.route('/register' , methods = ['GET' ,'POST'])
 def register():
         if request.method=='POST':
