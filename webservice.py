@@ -219,8 +219,9 @@ def comment_movie():
         if request.method == 'POST':
             movie = movies.find_one({"title":request.form['movie'] , "year":request.form['year']})
             if movie != None:
+                movie_and_year = request.form['movie'] + " " + request.form['year']
                 movies.update_one(  { "title":request.form['movie']  , "year":request.form['year']}, 
-                {"$push":{"comments":email + ":" + request.form['comment']}})
+                {"$push":{"comments":movie_and_year + " " + email + ":" + request.form['comment']}})
                 users.update_one({"Email":email}, 
                 {"$push":{"Comments":request.form['movie'] + " " + request.form['year'] + ":" + request.form['comment']} })
                 return '''  Comment has been added  '''
@@ -254,6 +255,15 @@ def delete_comment():
                     exists = True
                     users.update_one({"Email":email} , 
                     {"$pull":{"Comments":value}})
+                    print("value is " , value)
+                    iterable = movies.find()
+                    for tainia in iterable:
+                        for comment in tainia['comments']:
+                            in_str = all(x in comment for x in value.replace(":", " ").split(" "))
+                            if in_str == True:
+                                print("comment found")
+                                movies.update_one(tainia , {"$pull": {"comments":comment} } )
+                    
                 elif i+1 == len(usr['Comments']) and exists == False:
                     print('Comment does not exist')
                     return ''' Comment with specific number in list does not exist '''
@@ -282,6 +292,12 @@ def delete_account():
         email = session['Email']
         user = session['User']
         users.delete_one({"Email":email})
+        user_movies = movies.find()
+        for tainia in user_movies:
+            for comment in tainia['comments']:
+                if email in comment:
+                    print("email here ")
+                    movies.update_one(tainia  ,{"$pull": {"comments":comment}}) #deletes only the first 
         return render_template('moviehome.html' , message = 'Account has been deleted')
     else:
         return redirect(url_for('login'))    
