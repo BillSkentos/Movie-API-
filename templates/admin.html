@@ -48,7 +48,14 @@
         <li>  <a href ="{{url_for('remove_rating')}}"> Remove rating from  a movie  </a> </li>
         <li>  <a href = "{{url_for('view_comments_and_ratings')}}" >  View all your comments and ratings  </a> </li>
         <li>  <a href = "{{url_for('view_and_delete')}}"> View user comments and delete a comment  </a> </li>
-
+        <li>    Update an existing movie </li>
+        <form action = "{{url_for('select_movie_to_update')}}" method = "post">
+              <label for="select-movie">Enter existing movie name</label>
+               <input type = "text" id = "movie" name = "movie" required>
+               <label for="select-year">Enter the year the movie was published</label>
+               <input type = "text" id = "year" name = "year" required>  
+               <button type="submit"> Update the movie  </button> 
+        </form> 
 
         
 

@@ -462,6 +462,104 @@ def view_and_delete():
 
 
 
+
+
+
+#admin selects  movie to update and redirects to new page after submitting 
+@app.route('/selectmovietoupdate' , methods = ['GET' , 'POST'])
+def select_movie_to_update():
+    if 'Email' in session and 'User' in session:
+        email = session['Email']
+        user = session['User']
+        if user == 'Admin':
+            if request.method == 'POST':
+                tainia = movies.find_one({'title':request.form['movie'] , "year":request.form['year']}  )
+                if tainia != None:
+                    print("found")
+                    session['Movie'] = request.form['movie']
+                    session['Movie_year'] = request.form['year']
+                    session['Movie_plot'] = tainia['plot']
+                    return render_template('movie-update.html' , movie = tainia)
+                else:
+                    return '''  movie not found '''
+            return render_template('admin.html')                        
+        else:
+            return redirect(url_for('login'))    
+    else:
+        return redirect(url_for('login'))    
+
+
+
+@app.route('/executemovieupdate' , methods = ['GET', 'POST'])
+def execute_movie_update():
+    if 'Email' in session and 'User' in session:
+        email = session['Email']
+        user = session['User']
+        if user == 'Admin':
+            if 'Movie' in session and 'Movie_year' in session and 'Movie_plot' in session:
+                movie = session['Movie']
+                year = session['Movie_year']
+                plot = session['Movie_plot']
+                tainia = movies.find_one({'title':movie , "year":year})
+                if request.method == 'POST':
+                    new_title = request.form.get('new-title')
+                    new_plot = request.form.get('new-plot')
+                    new_year = request.form.get('new-year')
+                    new_actor = request.form.get('new-actor')
+                    old_actor = request.form.get('old-actor')
+
+                    if new_title:
+                        print("update the title")
+                        movies.update_one({"title":movie , "year":year} , {"$set":{"title":new_title} } )
+                        session['Movie'] = new_title
+                        movie = session['Movie']
+                        print(session)
+
+                    if  new_year:
+                        print("update the year")
+                        movies.update_one({"title":movie , "year":year} , {"$set": {"year":new_year}}) 
+                        session['Movie_year']=new_year
+                        year = session['Movie_year']
+                        print(session)
+
+                    if new_plot:
+                        print("update the plot")   
+                        movies.update_one({"title":movie , "year":year} , {"$set":{"plot":new_plot}})
+                        session['Movie-plot'] = new_plot
+                        plot = session['Movie-plot'] 
+                        print(session)
+
+                    if new_actor:
+                        print("time to insert actor ")
+                        movies.update_one({"title":movie , "year":year} , {"$push":{"actors":new_actor}})
+
+                    if old_actor:
+                        print("time to delete actor")
+                        mv = movies.find_one({"title":movie , "year":year})
+                        exists = False
+                        for i , iterable in enumerate(mv['actors']):
+                            if old_actor in iterable:
+                                print("im in")
+                                movies.update_one({"title":movie, "year":year} , {"$pull":{"actors":old_actor}})
+                                exists = True
+                                break
+                            elif i+1 == len(mv['actors']) and exists == False:
+                                print("actor not found ")
+                                return ''' actor no in movie '''
+
+ 
+  
+                    return ''' movie has been updated '''
+                                                                                                          
+                else:
+                    return render_template('movie-update.html' , movie = tainia)        
+            else:
+                return redirect(url_for('admin.html'))    
+        else:
+            return redirect(url_for('login')) 
+    else:
+        return redirect(url_for('login'))    
+
 @app.route('/register' , methods = ['GET' ,'POST'])
 def register():
         if request.method=='POST':
