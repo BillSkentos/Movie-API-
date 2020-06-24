@@ -425,7 +425,7 @@ def upgrade_user():
 
 
 
-
+#admin
 @app.route('/viewanddelete' , methods = ['GET', 'POST'])
 def view_and_delete():
     if 'Email' in session and 'User' in session:
@@ -557,7 +557,6 @@ def execute_movie_update():
 
 
                     if  new_year :
-
                         print("update the year")
                         movies.update_one({"title":movie , "year":year} , {"$set": {"year":new_year}}) 
                         session['Movie_year']=new_year
@@ -565,7 +564,8 @@ def execute_movie_update():
                         movie_list= list(movies.find({}))
                         for mv in movie_list:
                             for index , sxolio in enumerate(mv['comments']):
-                                if old_movie in sxolio:
+                                if str(movie) in sxolio and old_year in sxolio:
+                                    print("time to change year")
                                     mv['comments'][index] = sxolio.replace(old_year,new_year)
                             movies.update_one({"_id":mv['_id']} , {"$set":{"comments":mv['comments']}}) 
 
