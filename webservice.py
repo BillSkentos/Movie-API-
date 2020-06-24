@@ -40,6 +40,8 @@ def simpleuser():
     else:
         return redirect(url_for('login'))    
 
+
+
 @app.route('/adminuser')
 def adminuser():
     if 'Email' in session and 'User' in session:
@@ -424,42 +426,53 @@ def upgrade_user():
 
 
 
-#admin deletes comments 
-@app.route('/viewanddelete' , methods = ['GET' , 'POST'])
+@app.route('/viewanddelete' , methods = ['GET', 'POST'])
 def view_and_delete():
     if 'Email' in session and 'User' in session:
-        email = session['Email']
+        email=session['Email']
         user = session['User']
         if user == 'Admin':
-            movie_list = movies.find()
+            movie_list = list(movies.find({}))
             if request.method == 'POST':
                 comment_num = request.form['comm-number']
                 comment_num = int(comment_num)
+                comment_list = []
                 exists = False
-                for tainia in movie_list:
-                    for i , comment in enumerate(tainia['comments']):
-                        if i+1 == comment_num:
-                            print("comment found")
-                            exists = True
-                            movies.update_one(tainia , {"$pull":{"comments":comment}})
-                            user_list = users.find()
-                            for xristis in user_list:
-                                for  sxolio in xristis['Comments']:
-                                    in_str = all(x in comment for x in sxolio.replace(":", " ").split(" "))
-                                    if in_str == True:
-                                        users.update_one(xristis , {"$pull": {"Comments":sxolio}})
-                                        print("pulled!")
-                            return '''hi  '''
-                        elif i+1 == len(tainia['comments']) and exists==False:
-                            print("comment not found")
-                            return ''' bye '''
-                    return render_template('delete-user-comment.html')          
-            return render_template('delete-user-comment.html', movies = movie_list)
-        else:
-            return redirect(url_for('login'))     
-    else:
-        return redirect(url_for('login'))
+                for movie in movie_list:
+                    for idxc , comment in enumerate(movie['comments']):
+                        comment_list.append(comment)
 
+                print(comment_list)
+                for l , com in enumerate(comment_list):
+                    if l+1 == comment_num:
+                        print("comment found ")
+                        comment_list.remove(com)
+                        exists = True
+                        for movie in movie_list:
+                            for sxolio in movie['comments']:
+                                if com in sxolio:
+                                    movies.update_one( movie , {"$pull":{"comments":sxolio}})   
+                                    user_list = users.find()
+                                    for xristis in user_list:
+                                        for c in xristis['Comments']:
+                                            in_str = all(x in sxolio for x in c.replace(":", " ").split(" "))
+                                            print(in_str)
+                                            if in_str == True:
+                                                users.update_one(xristis , {"$pull":{'Comments':c}})
+                                                return ''' success '''
+                    elif l+1==len(comment_list) and exists == False:
+                        return ''' comment not found '''                            
+
+
+
+                return ''' comment deleted '''        
+
+            else:
+                return render_template('delete-user-comment.html' , movies = movie_list)    
+        else:
+            return redirect(url_for('login'))    
+    else:
+        return redirect(url_for('login'))    
 
 
 
@@ -534,12 +547,12 @@ def execute_movie_update():
                             users.update_one({"_id": usr['_id']}, {"$set": {"Comments": usr['Comments']}})
 
                         for xr in user_list:
-                            for i , rating in enumerate(xr['ratings']):
+                            for r , rating in enumerate(xr['ratings']):
                                 if old_movie in rating:
                                     print("old rating here")
                                     print(rating)
-                                    xr['ratings'][i] = rating.replace(old_movie,new_title)
-                                    print("new rating is :" , xr['ratings'][i])
+                                    xr['ratings'][r] = rating.replace(old_movie,new_title)
+                                    print("new rating is :" , xr['ratings'][r])
                             users.update_one({"_id": xr['_id']} , {"$set":{"ratings":xr['ratings']}})            
 
 
