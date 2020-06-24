@@ -312,7 +312,7 @@ def insert_movie():
         user = session['User']
         if user == 'Admin':
             if request.method == 'POST':
-                movie = {"title":request.form['title'] , "actors":[] , "comments":[] , "plot": "not added yet" , "year":"not added yet", 
+                movie = {"title":request.form['title'] , "actors":[] , "comments":[] , "plot": "not added yet" , "year":"2020", 
                 "ratings":"0"}
                 movies.insert_one(movie)
                 movies.update_many({"title":request.form['title']}  ,  
@@ -498,7 +498,10 @@ def execute_movie_update():
         if user == 'Admin':
             if 'Movie' in session and 'Movie_year' in session and 'Movie_plot' in session:
                 movie = session['Movie']
+                old_movie  = str(movie) #store old movie title 
+                print("old movie is " , old_movie)
                 year = session['Movie_year']
+                old_year = str(year) #store old year 
                 plot = session['Movie_plot']
                 tainia = movies.find_one({'title':movie , "year":year})
                 if request.method == 'POST':
@@ -513,14 +516,56 @@ def execute_movie_update():
                         movies.update_one({"title":movie , "year":year} , {"$set":{"title":new_title} } )
                         session['Movie'] = new_title
                         movie = session['Movie']
-                        print(session)
+                        movie_list = list(movies.find({}))
+                        for mv in movie_list:
+                            for index , sxolio in enumerate(mv['comments']):
+                                if old_movie in sxolio:
+                                    mv['comments'][index] = sxolio.replace(old_movie,new_title)
+                            movies.update_one({"_id":mv['_id']} , {"$set":{"comments":mv['comments']}})       
+                             
+                        user_list = list(users.find({}))
+                        for usr in user_list:
+                            for idxc , comment in enumerate(usr['Comments']):
+                                if old_movie in comment:
+                                    print("old comment here")
+                                    print(comment)
+                                    usr['Comments'][idxc]=comment.replace(old_movie,new_title)
+                                    print("new comment is ",usr['Comments'][idxc])
+                            users.update_one({"_id": usr['_id']}, {"$set": {"Comments": usr['Comments']}})
 
-                    if  new_year:
+                        for xr in user_list:
+                            for i , rating in enumerate(xr['ratings']):
+                                if old_movie in rating:
+                                    print("old rating here")
+                                    print(rating)
+                                    xr['ratings'][i] = rating.replace(old_movie,new_title)
+                                    print("new rating is :" , xr['ratings'][i])
+                            users.update_one({"_id": xr['_id']} , {"$set":{"ratings":xr['ratings']}})            
+
+
+                    if  new_year :
+
                         print("update the year")
                         movies.update_one({"title":movie , "year":year} , {"$set": {"year":new_year}}) 
                         session['Movie_year']=new_year
                         year = session['Movie_year']
-                        print(session)
+                        movie_list= list(movies.find({}))
+                        for mv in movie_list:
+                            for index , sxolio in enumerate(mv['comments']):
+                                if old_movie in sxolio:
+                                    mv['comments'][index] = sxolio.replace(old_year,new_year)
+                            movies.update_one({"_id":mv['_id']} , {"$set":{"comments":mv['comments']}}) 
+
+                        user_list = list(users.find({}))
+                        for usr in user_list:
+                            for idxc , comment in enumerate(usr['Comments']):
+                                if old_movie in comment:
+                                    print("old comment here")
+                                    print(comment)
+                                    usr['Comments'][idxc]=comment.replace(old_year,new_year)
+                                    print("new comment is ",usr['Comments'][idxc])
+                            users.update_one({"_id": usr['_id']}, {"$set": {"Comments": usr['Comments']}})    
+                            
 
                     if new_plot:
                         print("update the plot")   
@@ -542,7 +587,6 @@ def execute_movie_update():
                                 print("im in")
                                 movies.update_one({"title":movie, "year":year} , {"$pull":{"actors":old_actor}})
                                 exists = True
-                                break
                             elif i+1 == len(mv['actors']) and exists == False:
                                 print("actor not found ")
                                 return ''' actor no in movie '''
@@ -603,6 +647,10 @@ def logout():
     # remove the email and user from the session if it's there
     session.pop('Email', None)
     session.pop('User' , None)
+    if 'Movie' in session and 'Movie_year' in session and 'Movie_plot' in session:
+        session.pop('Movie' , None)
+        session.pop('Movie_year' , None)
+        session.pop('Movie_plot' , None)
     return redirect(url_for('login'))
 
 
