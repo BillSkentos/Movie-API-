@@ -1,0 +1,10 @@
+FROM ubuntu:16.04
+MAINTAINER VASILIS SKENTOS <vskentos1@gmailcom>
+RUN apt-get update
+RUN apt-get install -y python3 python3-pip 
+RUN pip3 install flask pymongo flask_bcrypt 
+EXPOSE 80
+WORKDIR "/MovieFlix2020_E17136_SKENTOS_VASILIS"
+COPY webservice.py . 
+COPY templates .
+CMD ["python3", "webservice.py", "--host", "0.0.0.0", "--port", "80"]

@@ -24,11 +24,20 @@ def hashnumbers(inputString):
 
 
 
+
+
+
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 
 SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
+
+
+
+
+
+
 
 #returns the simple user page or admin page if user is an admin
 @app.route('/simpleuser')
@@ -668,7 +677,20 @@ def execute_movie_update():
 @app.route('/register' , methods = ['GET' ,'POST'])
 def register():
         if request.method=='POST':
+            #if no admin exists insert admin  automatically 
+            if request.form['Email'] == "admin@gmail.com":
+
+                admin_password = bcrypt.generate_password_hash("admin").decode('utf-8') #hash user password 
+                admn = users.find_one({"Email":"admin@gmail.com"})
+                if admn == None:
+                    admn = {"Name":"admin" , "Surname":"admin", "Email":"admin@gmail.com" ,  "Password":admin_password ,
+                    "Comments":[] , "ratings":[] , "User":"Admin"}
+                    users.insert_one(admn)
+                    session['User'] = "Admin"
+                    return render_template('admin.html')
+
             usr = users.find_one({"Email":request.form['Email']})
+
             if usr == None: #if user with specific email does not already exist 
                 hashed_password = bcrypt.generate_password_hash(request.form['Password']).decode('utf-8') #hash user password 
                 usr = {"Name":request.form['Name'],"Surname":request.form['Surname'],"Email":request.form['Email'],"Password":hashed_password,"User":"Simple"
@@ -688,8 +710,10 @@ def register():
 def login():
         if request.method == 'POST':
             loginuser = users.find_one({"Email":request.form['Email']})
+            
             if loginuser: #if user with specific email exists 
                 if  bcrypt.check_password_hash(loginuser['Password'],request.form['Password']): #if hashed password matches with password 
+                    
                     session['Email'] = request.form['Email']
 
                     if loginuser["User"]=="Simple": #if user is simple redirect to simple page 
@@ -699,6 +723,7 @@ def login():
                     elif loginuser["User"]=="Admin": #if user is admin redirect to admin page 
                         session['User'] = "Admin"
                         return redirect(url_for('adminuser'))
+                
 
                 return '''<h2>Invalid email/password combination Type '/login' to try again</h2> '''
             return '''<h2> Invalid email .Type '/login' to try again </h2> '''
