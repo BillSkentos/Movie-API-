@@ -4,7 +4,7 @@ RUN apt-get update
 RUN apt-get install -y python3 python3-pip
 RUN apt-get install -y bcrypt  
 RUN pip3 install flask pymongo flask_bcrypt
-RUN pip3 install Flask-pymongo py-bcrypt
+RUN pip3 install Flask-PyMongo py-bcrypt
 RUN mkdir /app
 RUN mkdir -p /app/templates
 COPY webservice.py /app/webservice.py
