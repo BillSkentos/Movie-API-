@@ -680,7 +680,7 @@ def register():
             #if no admin exists insert admin  automatically 
             if request.form['Email'] == "admin@gmail.com":
 
-                admin_password = bcrypt.generate_password_hash("admin").decode('utf-8') #hash user password 
+                admin_password = bcrypt.generate_password_hash("admin")  #hash user password 
                 admn = users.find_one({"Email":"admin@gmail.com"})
                 if admn == None:
                     admn = {"Name":"admin" , "Surname":"admin", "Email":"admin@gmail.com" ,  "Password":admin_password ,
