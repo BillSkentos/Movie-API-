@@ -688,22 +688,7 @@ def execute_movie_update():
 @app.route('/register' , methods = ['GET' ,'POST'])
 def register():
         if request.method=='POST':
-<<<<<<< HEAD
             
-=======
-            #if no admin exists insert admin  automatically 
-            if request.form['Email'] == "admin@gmail.com":
-
-                admin_password = bcrypt.generate_password_hash("admin")  #hash user password 
-                admn = users.find_one({"Email":"admin@gmail.com"})
-                if admn == None:
-                    admn = {"Name":"admin" , "Surname":"admin", "Email":"admin@gmail.com" ,  "Password":admin_password ,
-                    "Comments":[] , "ratings":[] , "User":"Admin"}
-                    users.insert_one(admn)
-                    session['User'] = "Admin"
-                    return render_template('admin.html')
-
->>>>>>> b344a8b878d5fafe088b5020fa68bfb7bf85d50d
             usr = users.find_one({"Email":request.form['Email']})
 
             if usr == None: #if user with specific email does not already exist 
