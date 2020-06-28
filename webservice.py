@@ -9,7 +9,9 @@ import re
 
 
 
-client = MongoClient('mongodb://localhost:27017/')
+
+mongodb_hostname = os.environ.get("MONGO_HOSTNAME","localhost")
+client = MongoClient('mongodb://'+mongodb_hostname+':27017/')
 db = client['MovieFlixDB']
 
 users = db['Users']
@@ -71,6 +73,15 @@ def adminuser():
 #home page
 @app.route('/')
 def home():
+    
+    #if no admin exists insert default one 
+    admn = users.find_one({"Email":"admin@gmail.com"})
+    if admn == None:
+        admin_password = bcrypt.generate_password_hash("admin") #hash user password 
+        admn = {"Name":"admin" , "Surname":"admin", "Email":"admin@gmail.com" ,  "Password":admin_password ,
+        "Comments":[] , "ratings":[] , "User":"Admin"}
+        users.insert_one(admn)
+
     return render_template('moviehome.html')
 
 
@@ -677,18 +688,7 @@ def execute_movie_update():
 @app.route('/register' , methods = ['GET' ,'POST'])
 def register():
         if request.method=='POST':
-            #if no admin exists insert admin  automatically 
-            if request.form['Email'] == "admin@gmail.com":
-
-                admin_password = bcrypt.generate_password_hash("admin").decode('utf-8') #hash user password 
-                admn = users.find_one({"Email":"admin@gmail.com"})
-                if admn == None:
-                    admn = {"Name":"admin" , "Surname":"admin", "Email":"admin@gmail.com" ,  "Password":admin_password ,
-                    "Comments":[] , "ratings":[] , "User":"Admin"}
-                    users.insert_one(admn)
-                    session['User'] = "Admin"
-                    return render_template('admin.html')
-
+            
             usr = users.find_one({"Email":request.form['Email']})
 
             if usr == None: #if user with specific email does not already exist 
@@ -742,7 +742,7 @@ def logout():
         session.pop('Movie' , None)
         session.pop('Movie_year' , None)
         session.pop('Movie_plot' , None)
-    return redirect(url_for('login'))
+    return redirect(url_for('home'))
 
 
 
