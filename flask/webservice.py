@@ -692,7 +692,7 @@ def register():
             usr = users.find_one({"Email":request.form['Email']})
 
             if usr == None: #if user with specific email does not already exist 
-                hashed_password = bcrypt.generate_password_hash(request.form['Password']).decode('utf-8') #hash user password 
+                hashed_password = bcrypt.generate_password_hash(request.form['Password']) #hash user password 
                 usr = {"Name":request.form['Name'],"Surname":request.form['Surname'],"Email":request.form['Email'],"Password":hashed_password,"User":"Simple"
                 , "Comments":[] , "ratings":[]} 
                 users.insert_one(usr) #insert created user to collection 
