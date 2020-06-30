@@ -1,12 +1,12 @@
 # MovieFlix  2020 Web Service
 
-This is a web service built in flask that lets a user interact with a movie information website using a RESTFUL API .
+This is a web service built in flask that lets a user interact with a movie information website using a RESTFUL API 
 
 ## Instructions 
 
 * Install Docker from your terminal 
     
-    Docker is an app that helps you create in image of your program and deploy it using a docker container so that  users can run  the app without worrying  about package or infrastructure 
+    Docker is an app that helps you create in image of your program and deploy it using a docker container so that  users can run  the app through Docker without worrying  about package or infrastructure 
     independencies .
     
     To install Docker Engine, you need the 64-bit version of one of these Ubuntu versions:
@@ -20,14 +20,14 @@ This is a web service built in flask that lets a user interact with a movie info
 
     1. Use following commands to set up your repository .
 
-        1. $ sudo apt-get update
+        1.  $ sudo apt-get update
 
         2.  
-            $ sudo apt-get install \
-            apt-transport-https \
-            ca-certificates \
-            curl \
-            gnupg-agent \
-            software-properties-common   
+                ''' $ sudo apt-get install \
+                apt-transport-https \
+                ca-certificates \
+                curl \
+                gnupg-agent \
+                software-properties-common  ''' 
 
     2. Add Docker's official GPG Key
