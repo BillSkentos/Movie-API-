@@ -20,13 +20,13 @@ This is a web service built in flask that lets a user interact with a movie info
 
     1. Use following commands to set up your repository .
 
-        1. sudo apt-get update
-        2. sudo apt install -y apt-transport-https ca-certificates curl
-        software-properties-common
-        3. curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key
-        add -
-        4. sudo add-apt-repository -y "deb [arch=amd64]
-        https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-        5. sudo apt-get update
-        6. sudo apt install docker-ce
+                1. sudo apt-get update
+                2. sudo apt install -y apt-transport-https ca-certificates curl
+                software-properties-common
+                3. curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key
+                add -
+                4. sudo add-apt-repository -y "deb [arch=amd64]
+                https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+                5. sudo apt-get update
+                6. sudo apt install docker-ce
 
