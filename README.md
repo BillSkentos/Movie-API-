@@ -29,7 +29,7 @@ This is a web service built in flask that lets a user interact with a movie info
                 5. sudo apt-get update
                 6. sudo apt install docker-ce
 
-  2. To run our docker image paired with a mongodb image we also need '''docker-compose''' which can be installed with the steps below :
+  2. To run our docker image paired with a mongodb image we also need <code>docker-compose</code> which can be installed with the steps below :
 
                 1. sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-`uname
                     -s`-`uname -m` -o /usr/local/bin/docker-compose
