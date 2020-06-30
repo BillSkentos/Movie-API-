@@ -4,7 +4,7 @@ This is a web service built in flask that lets a user interact with a movie info
 
 ## Instructions 
 
-* Install Docker from your terminal 
+* Install <code>Docker</code> from your terminal 
     
     Docker is an app that helps you create in image of your program and deploy it using a docker container so that  users can run  the app through Docker without worrying  about package or infrastructure 
     independencies .
@@ -34,3 +34,7 @@ This is a web service built in flask that lets a user interact with a movie info
                 1. sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-`uname
                     -s`-`uname -m` -o /usr/local/bin/docker-compose
                 2. sudo chmod +x /usr/local/bin/docker-compose
+
+* Download this repository .
+
+        Now that Docker and docker-compose have been installed you can download this repository using git clone https://github.com/BillSkentos/MovieFlix2020_E17136_SKENTOS_VASILIS.git
