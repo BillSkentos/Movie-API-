@@ -16,9 +16,8 @@ This is a web service built in flask that lets a user interact with a movie info
         *Ubuntu Bionic 18.04 (LTS)
         *Ubuntu Xenial 16.04 (LTS)
 
-     Before you install Docker Engine for the first time on a new host machine, you need to set up the Docker repository. Afterward, you can install and update Docker from the repository.
 
-    1. Use following commands to set up your repository .
+  1. Use following commands to install Docker  .
 
                 1. sudo apt-get update
                 2. sudo apt install -y apt-transport-https ca-certificates curl
@@ -30,3 +29,6 @@ This is a web service built in flask that lets a user interact with a movie info
                 5. sudo apt-get update
                 6. sudo apt install docker-ce
 
+  2. To run our web service we also need docker-compose which can be installed with the steps below :
+
+          1. 
