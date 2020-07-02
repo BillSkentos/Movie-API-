@@ -56,7 +56,7 @@ This is a web service built in flask that lets a user interact with a movie info
         3. You can lastly log out or delete your account . 
 
         4. In case you type information like for example a movie that does not exist or a wrong year of publishment and get a message 
-        like <code> Movie not found </code> you can either go pages back using the <code><-</code> arrow or type <code>simpleuser</code> after the <code>/</code> in the searchbar to access your user account page immediatelly .
+        like <code> Movie not found </code> you can either go pages back using the <code><-</code> arrow button on top left  or type <code>simpleuser</code> after the <code>/</code> in the searchbar to access your user account page immediatelly .
 
 
 
