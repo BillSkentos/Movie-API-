@@ -49,14 +49,14 @@ This is a web service built in flask that lets a user interact with a movie info
     2. You have now accessed the home page . You can either click <code>Register</code> to create an account or click login and enter with email :<code>admin@gmail.com</code> and password : <code>admin</code> , as a default admin is created on the home page if no admin exists in our database .
 
     3. 
-        1. If you are a simple user you can now access all of the functionalities of the API for a simple user like entering a title to get a list of information about all movies with the same title(same applies for entering a year or an actor name ) . You can also write a comment on a movie or rate a movie but you have to know the year the movie has been published . A movie that has been inserted by an admin is automatically published in 2020 unless the admin upgrades it . 
+        1. If you are a simple user you can now access all of the functionalities of the API for a simple user like entering a title to get a list of information about all movies with the same title(same applies for entering a year or an actor name ) . You can also write a comment on a movie or rate a movie but you have to know the year the movie has been published . A movie that has been inserted by an admin is automatically published in <code>2020</code> unless the admin upgrades it . 
 
         2. You can also view all your comments , rate a movie from a scale of 1-10 and see all your ratings.
 
         3. You can lastly log out or delete your account . 
 
         4. In case you type information like for example a movie that does not exist or a wrong year of publishment and get a message 
-        like <code> Movie not found </code> you can either go pages back using the <code><-</code> arrow button on top left  or type <code>simpleuser</code> after the <code>/</code> in the searchbar to access your user account page immediatelly .
+        like <code> Movie not found </code> you can either go pages back using the <code><-</code> arrow button on top left or click on the message displayed to go to your user page immediatelly.
 
 
 

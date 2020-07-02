@@ -193,7 +193,7 @@ def rate_movie():
                             movies.update_one({"title":request.form['movie'] , "year":request.form['year']} , 
                             {"$set": {'ratings':find_average(request.form['movie'] , request.form['rating'])} } )
 
-                return ''' <h2> Movie has been updated . Type "/" for home or "/simpleuser" to go to start page </h2> '''
+                return  '<html> <a href = "/simpleuser">  Movie has been rated . You can click this link to return to your page  </a>  </html>'
 
             return render_template('movie-rate.html')
 
@@ -226,7 +226,8 @@ def remove_rating():
                         movies.update_one({"title":request.form['movie'] , "year":request.form['year']} , 
                         {"$set": {'ratings':find_average(request.form['movie'] , old_rating)} } )
 
-                return ''' <h2> Rating has removed . Type  '/simpleuser' to return to your page </h2> '''
+                return '<html> <a href = "/simpleuser">  Rating has been removed  . You can click this link to return to your page  </a>  </html>'
+
 
             else:
                 return render_template('del-rate.html')             
@@ -279,7 +280,8 @@ def comment_movie():
                 users.update_one({"Email":email}, 
                 {"$push":{"Comments":request.form['movie'] + " " + request.form['year'] + ":" + request.form['comment']} })
 
-                return ''' <h2>  Comment has been added . Type '/simpleuser' to return to your page  </h2> '''
+                return '<html> <a href = "/simpleuser">  Comment has been added . You can click this link to return to your page  </a>  </html>'
+
             else:
                 return render_template('movie-comment.html')    
         else:
@@ -323,9 +325,11 @@ def delete_comment():
                                 movies.update_one(tainia , {"$pull": {"comments":comment} } )
                     
                 elif i+1 == len(usr['Comments']) and exists == False:  #if index not found
-                    return ''' <h2> Comment with specific number in list does not exist . Type '/simpleuser' to return to your page </h2>'''
+                    return'<html> <a href = "/simpleuser">  Comment with specific number does not exist in the comment list  . You can click this link to return to your page  </a>  </html>'
 
-            return ''' <h2> Comment has been deleted . Type '/simpleuser' to return to your page </h2> '''
+
+            return '<html> <a href = "/simpleuser">  Comment has been deleted . You can click this link to return to your page  </a>  </html>'
+
 
         else:
             return redirect(url_for('login'))       
@@ -339,7 +343,7 @@ def view_comments_and_ratings():
     if 'Email' in session and 'User' in session: #if user is logged in 
         email = session['Email']
         user = session['User']    
-        usr = users.find_one({"Email":email}) #find specifc user and return his comments and ratings 
+        usr = users.find_one({"Email":email}) #find specific user and return his comments and ratings 
         return render_template('view-comms-rates.html' , user = usr)
                 
     else:
@@ -387,7 +391,8 @@ def insert_movie():
                 movies.update_many({"title":request.form['title']}  ,  
                 {"$push":{"actors":request.form['actors']}}  )
 
-                return '''  <h2>  Movie has been inserted . Type '/adminuser' to return to your page <h2> '''
+                return '<html> <a href = "/adminuser">  Movie has been inserted . You can click this link to return to your page  </a>  </html>'
+
             else:
                 return render_template('movie-insert.html') 
 
@@ -429,7 +434,8 @@ def delete_movie():
                                 {"$pull": {"Comments": comment}})
 
                     
-                    return '''  <h2>  Movie has been deleted . Type '/adminuser' to return to your page  </h2>  '''
+                    return '<html> <a href = "/adminuser">  Movie has been deleted . You can click this link to return to your page  </a>  </html>'
+
                 else:
                     return render_template('movie-delete.html')      
             else: 
@@ -454,7 +460,8 @@ def delete_user():
                         return render_template('user-delete.html')
                     else:
                         users.delete_one(usr) #delete the user 
-                        return ''' <h2>  User has been deleted . Type '/adminuser' to return to your page  </h2>   '''  
+                        return'<html> <a href = "/adminuser">  User has been deleted  . You can click this link to return to your page  </a>  </html>'
+  
                 else:
                     return render_template('user-delete.html')
             else:
@@ -478,7 +485,8 @@ def upgrade_user():
                 specific_user = users.find_one({"Email":request.form['email']}) #check if user exists 
                 if specific_user != None:
                     users.update_one({"Email":request.form['email']} , {'$set':{"User":"Admin"}}) #upgrade to admin
-                    return ''' <h1>  User has been updated to Admin . Type '/adminuser' to return to your page </h1>   '''
+                    return '<html> <a href = "/adminuser"> User has been updated to admin . You can click this link to return to your page  </a>  </html>'
+
                 else:
                     return render_template('user-upgrade.html')
             else:
@@ -532,14 +540,17 @@ def view_and_delete():
                                             in_str = all(x in sxolio for x in c.replace(":", " ").split(" "))
                                             if in_str == True: #if comment is found in user comment delete the user comment 
                                                 users.update_one(xristis , {"$pull":{'Comments':c}})
-                                                return '''<h2> Comment has been succesfully deleted . Type '/adminuser' to return to your page </h2> '''
+                                                return '<html> <a href = "/adminuser">  Comment has been . You can click this link to return to your page  </a>  </html>'
+
 
                     elif l+1==len(comment_list) and exists == False: #if index not found 
-                        return ''' Comment not found .  Type '/adminuser' to return to your page '''                            
+                        return '<html> <a href = "/adminuser">  Comment not found . You can click this link to return to your page  </a>  </html>'
+                            
 
 
 
-                return ''' Comment deleted . Type '/adminuser' to return to your page '''        
+                return '<html> <a href = "/simpleuser">  Comment deleted  . You can click this link to return to your page  </a>  </html>'
+      
 
             else:
                 return render_template('delete-user-comment.html' , movies = movie_list)    
@@ -570,7 +581,8 @@ def select_movie_to_update():
                     session['Movie_plot'] = tainia['plot']
                     return render_template('movie-update.html' , movie = tainia) #return the movie 
                 else:
-                    return '''  Movie not found . Type '/adminuser' to return to your page '''
+                    return  '<html> <a href = "/adminuser">  Movie not found  . You can click this link to return to your page  </a>  </html>'
+
             return render_template('admin.html')    
 
         else: #if user not admin redirect to login 
@@ -666,12 +678,12 @@ def execute_movie_update():
                             if old_actor in iterable:
                                 movies.update_one({"title":movie, "year":year} , {"$pull":{"actors":old_actor}})
                                 exists = True #actor exists and is deleted  
-                            elif i+1 == len(mv['actors']) and exists == False: #if actor does not exist in list 
-                                return ''' Actor does not exist in movie . All other updates are done. Type '/adminuser' to return to your page  '''
+                            elif i+1 == len(mv['actors']) and exists == False:#if actor does not exist in list  
+                                return  '<html> <a href = "/adminuser">  Actor not found .  All other updates are succesfully executed   . You can click this link to return to your page  </a>  </html>'
 
- 
-  
-                    return ''' Movie has been updated  . Type '/adminuser' to return to your page  '''
+
+                    return '<html> <a href = "/adminuser">  Movie has been updated. You can click this link to return to your page  </a>  </html>'
+
                                                                                                           
                 else:
                     return render_template('movie-update.html' , movie = tainia)        
