@@ -22,7 +22,7 @@ This is a web service built in flask that lets a user interact with a movie info
                 2. sudo apt install -y apt-transport-https ca-certificates curl
                 software-properties-common
                 3. curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key
-                add -
+                add - (one line command)
                 4. sudo add-apt-repository -y "deb [arch=amd64]
                 https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
                 5. sudo apt-get update
@@ -31,7 +31,7 @@ This is a web service built in flask that lets a user interact with a movie info
   2. To run our docker image paired with a mongodb image we also need <code>docker-compose</code> which can be installed with the steps below :
 
                 1. sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-`uname
-                    -s`-`uname -m` -o /usr/local/bin/docker-compose
+                    -s`-`uname -m` -o /usr/local/bin/docker-compose (one line command)
                 2. sudo chmod +x /usr/local/bin/docker-compose
 
 * Now that Docker and docker-compose are install you have to download this repository from your terminal and go to that directory.
@@ -56,7 +56,7 @@ This is a web service built in flask that lets a user interact with a movie info
         3. You can lastly log out or delete your account . 
 
         4. In case you type information like for example a movie that does not exist or a wrong year of publishment and get a message 
-        like <code> Movie not found </code> you can either go pages back using the <- arrow or type <code>simpleuser</code> after the <code>/</code> in the searchbar to access your user account page immediatelly .
+        like <code> Movie not found </code> you can either go pages back using the <code><-</code> arrow or type <code>simpleuser</code> after the <code>/</code> in the searchbar to access your user account page immediatelly .
 
 
 
@@ -65,7 +65,7 @@ This is a web service built in flask that lets a user interact with a movie info
             
         1. Insert a new movie . You enter a movie name and a protagonist for a movie . The year is set to 2020 as default 
 
-        2. Update a movie . Change the title , year of publish , delete or insert an actor .
+        2. Update a movie . Change the title , year of publish , delete or insert an actor or change the movie plot.
 
         3. Delete a  movie . If 2 movies with same title exist the one with the oldest year will be deleted .  
 
