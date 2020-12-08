@@ -1,6 +1,7 @@
 # MovieFlix  2020 Web Service
 
-This is a web service built in flask that lets a user interact with a movie information website using a RESTFUL API 
+This is a web service built in flask and mongodb that lets a user interact with a movie information website using a RESTFUL API .
+***RUNS ONLY ON LINUX 
 
 ## Instructions 
 
